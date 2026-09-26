@@ -16,4 +16,8 @@ Modern backend ve full-stack geliştirme pratikleri için oluşturduğum kişise
 - Redis
 - RabbitMQ
 
+Mimari
+Modular Monolith
+Layered Architecture
+
 Proje ilerledikçe yeni mimari ve teknolojiler eklenecektir.
