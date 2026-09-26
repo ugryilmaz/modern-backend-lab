@@ -12,8 +12,6 @@ const userRoutes = async (app: FastifyInstance) => {
   });
 
   app.get('/users/:id', async (request, reply) => {
-    const { id } = request.params as { id: string };
-
     const result = userIdParamsSchema.safeParse(request.params);
 
     if (!result.success) {
@@ -77,7 +75,7 @@ const userRoutes = async (app: FastifyInstance) => {
       throw app.httpErrors.notFound('User not found');
     }
 
-    return user;
+    return reply.code(204).send();
   });
 
   app.post('/users', async (request, reply) => {
@@ -91,7 +89,7 @@ const userRoutes = async (app: FastifyInstance) => {
     }
 
     const { name, email } = result.data;
-    return userService.createUser(name, email);
+    return reply.code(201).send(await userService.createUser(name, email));
   });
 };
 
