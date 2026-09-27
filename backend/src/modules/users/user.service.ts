@@ -4,8 +4,12 @@ const getUsers = async () => {
   return userRepository.findAll();
 };
 
-const createUser = async (name: string, email: string) => {
-  return userRepository.create(name, email);
+const createUser = async (
+  name: string,
+  email: string,
+  passwordHash: string,
+) => {
+  return userRepository.create(name, email, passwordHash);
 };
 
 const getUserById = async (id: number) => {

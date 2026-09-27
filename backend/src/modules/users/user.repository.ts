@@ -6,13 +6,21 @@ const findAll = async () => {
   return db.select().from(users);
 };
 
-const create = async (name: string, email: string) => {
-  const result = await db.insert(users).values({ name, email }).returning();
+const create = async (name: string, email: string, passwordHash: string) => {
+  const result = await db
+    .insert(users)
+    .values({ name, email, passwordHash })
+    .returning();
   return result[0];
 };
 
 const findById = async (id: number) => {
   const result = await db.select().from(users).where(eq(users.id, id));
+  return result[0];
+};
+
+const findByEmail = async (email: string) => {
+  const result = await db.select().from(users).where(eq(users.email, email));
   return result[0];
 };
 
@@ -34,6 +42,7 @@ const remove = async (id: number) => {
 export default {
   findAll,
   findById,
+  findByEmail,
   remove,
   create,
   update,

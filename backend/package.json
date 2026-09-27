@@ -18,7 +18,9 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@fastify/jwt": "^10.2.2",
     "@fastify/sensible": "^6.0.5",
+    "argon2": "^0.45.1",
     "dotenv": "^18.0.3",
     "drizzle-orm": "^0.45.3",
     "fastify": "^5.12.5",

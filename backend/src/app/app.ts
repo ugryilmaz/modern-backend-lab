@@ -1,15 +1,22 @@
 import Fastify, { type FastifyError } from 'fastify';
 import healthRoutes from './routes/health.routes.js';
 import userRoutes from '../modules/users/user.routes.js';
-import db from '../db/client.js';
 import fastifySensible from '@fastify/sensible';
+import authRoutes from '../modules/auth/auth.route.js';
+import fastifyJwt from '@fastify/jwt';
+import { env } from '../config/env.js';
 
 const app = Fastify({
   logger: true,
 });
 
+app.register(fastifyJwt, {
+  secret: env.JWT_SECRET,
+});
+
 app.register(healthRoutes);
 app.register(userRoutes);
+app.register(authRoutes, { prefix: '/auth' });
 app.register(fastifySensible);
 
 app.setErrorHandler((error: FastifyError, request, reply) => {

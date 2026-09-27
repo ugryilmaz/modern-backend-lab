@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 
 const healthRoutes = async (app: FastifyInstance) => {
-  app.get('/health', (async) => {
+  app.get('/health', () => {
     return {
       status: 'ok',
     };
