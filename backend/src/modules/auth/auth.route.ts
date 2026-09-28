@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { loginSchema, registerSchema } from './auth.schema.js';
 import { login, register } from './auth.service.js';
+import type { JwtPayload } from './auth.types.js';
 
 const authRoutes = async (app: FastifyInstance) => {
   app.post('/register', async (request, reply) => {
@@ -40,11 +41,55 @@ const authRoutes = async (app: FastifyInstance) => {
     const accessToken = await reply.jwtSign({
       sub: user.id,
       role: user.role,
+      type: 'access',
+    });
+
+    const refreshToken = await reply.jwtSign(
+      {
+        sub: user.id,
+        role: user.role,
+        type: 'refresh',
+      },
+      {
+        expiresIn: '7d',
+      },
+    );
+
+    reply.setCookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/auth',
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return {
       accessToken,
       user,
+    };
+  });
+
+  app.post('/refresh', async (request, reply) => {
+    const { refreshToken } = request.cookies;
+
+    if (!refreshToken) {
+      throw app.httpErrors.unauthorized('Refresh token not found');
+    }
+
+    const payload = app.jwt.verify<JwtPayload>(refreshToken);
+
+    if (payload.type !== 'refresh') {
+      throw app.httpErrors.unauthorized('Invalid refresh token');
+    }
+
+    const accessToken = await reply.jwtSign({
+      sub: payload.sub,
+      role: payload.role,
+      type: 'access',
+    });
+
+    return {
+      accessToken,
     };
   });
 };

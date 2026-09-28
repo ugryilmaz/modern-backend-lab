@@ -1,7 +1,15 @@
 import userRepository from './user.repository.js';
 
 const getUsers = async () => {
-  return userRepository.findAll();
+  const users = await userRepository.findAll();
+
+  return users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    createdAt: user.createdAt,
+  }));
 };
 
 const createUser = async (

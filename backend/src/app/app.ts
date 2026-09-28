@@ -5,13 +5,19 @@ import fastifySensible from '@fastify/sensible';
 import authRoutes from '../modules/auth/auth.route.js';
 import fastifyJwt from '@fastify/jwt';
 import { env } from '../config/env.js';
+import fastifyCookie from '@fastify/cookie';
 
 const app = Fastify({
   logger: true,
 });
 
+app.register(fastifyCookie);
+
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
+  sign: {
+    expiresIn: '15m',
+  },
 });
 
 app.register(healthRoutes);

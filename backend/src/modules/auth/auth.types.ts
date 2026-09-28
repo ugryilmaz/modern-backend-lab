@@ -1,8 +1,11 @@
 import '@fastify/jwt';
 
+export type TokenType = 'access' | 'refresh';
+
 export interface JwtPayload {
   sub: number;
   role: 'user' | 'admin';
+  type: TokenType;
 }
 
 declare module '@fastify/jwt' {

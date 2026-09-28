@@ -6,11 +6,16 @@ import {
   userIdParamsSchema,
 } from './users.schema.js';
 import authenticate from '../auth/auth.hook.js';
+import requireRole from '../auth/auth.authorization.js';
 
 const userRoutes = async (app: FastifyInstance) => {
-  app.get('/users', async () => {
-    return userService.getUsers();
-  });
+  app.get(
+    '/users',
+    { preHandler: [authenticate, requireRole('user', 'admin')] },
+    async () => {
+      return userService.getUsers();
+    },
+  );
 
   app.get(
     '/users/:id',
@@ -70,24 +75,28 @@ const userRoutes = async (app: FastifyInstance) => {
     return user;
   });
 
-  app.delete('/users/:id', async (request, reply) => {
-    const paramsResult = userIdParamsSchema.safeParse(request.params);
+  app.delete(
+    '/users/:id',
+    { preHandler: [authenticate, requireRole('admin')] },
+    async (request, reply) => {
+      const paramsResult = userIdParamsSchema.safeParse(request.params);
 
-    if (!paramsResult.success) {
-      return reply.status(400).send({
-        message: 'Validation error',
-        errors: paramsResult.error.issues,
-      });
-    }
+      if (!paramsResult.success) {
+        return reply.status(400).send({
+          message: 'Validation error',
+          errors: paramsResult.error.issues,
+        });
+      }
 
-    const user = await userService.deleteUser(paramsResult.data.id);
+      const user = await userService.deleteUser(paramsResult.data.id);
 
-    if (!user) {
-      throw app.httpErrors.notFound('User not found');
-    }
+      if (!user) {
+        throw app.httpErrors.notFound('User not found');
+      }
 
-    return reply.code(204).send();
-  });
+      return reply.code(204).send();
+    },
+  );
 };
 
 export default userRoutes;
