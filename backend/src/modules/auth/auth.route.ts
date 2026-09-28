@@ -63,6 +63,8 @@ const authRoutes = async (app: FastifyInstance) => {
       EX: 60 * 60 * 24 * 7,
     });
 
+    await redis.sAdd(`user:sessions:${user.id}`, refreshJti);
+
     reply.setCookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: false,
@@ -106,7 +108,15 @@ const authRoutes = async (app: FastifyInstance) => {
       throw app.httpErrors.unauthorized('Invalid refresh token');
     }
 
+    await redis.sRem(`user:sessions:${userId}`, payload.jti);
+
     const newRefreshJti = randomUUID();
+
+    await redis.sAdd(`user:sessions:${payload.sub}`, newRefreshJti);
+
+    await redis.set(`refresh:${newRefreshJti}`, String(payload.sub), {
+      EX: 60 * 60 * 24 * 7,
+    });
 
     const newRefreshToken = await reply.jwtSign(
       {
@@ -119,10 +129,6 @@ const authRoutes = async (app: FastifyInstance) => {
         expiresIn: '7d',
       },
     );
-
-    await redis.set(`refresh:${newRefreshJti}`, String(payload.sub), {
-      EX: 60 * 60 * 24 * 7,
-    });
 
     reply.setCookie('refreshToken', newRefreshToken, {
       httpOnly: true,
@@ -140,6 +146,75 @@ const authRoutes = async (app: FastifyInstance) => {
 
     return {
       accessToken,
+    };
+  });
+
+  app.post('/logout', async (request, reply) => {
+    const { refreshToken } = request.cookies;
+
+    reply.clearCookie('refreshToken', {
+      path: '/auth',
+    });
+
+    if (!refreshToken) {
+      return {
+        message: 'Logged out',
+      };
+    }
+
+    try {
+      const payload = app.jwt.verify<JwtPayload>(refreshToken);
+
+      if (payload.type === 'refresh' && payload.jti) {
+        await redis.del(`refresh:${payload.jti}`);
+        await redis.sRem(`user:sessions:${payload.sub}`, payload.jti);
+      }
+    } catch (error) {
+      app.log.warn({ error }, 'Invalid refresh token during logout');
+    }
+
+    return {
+      message: 'Logged out',
+    };
+  });
+
+  app.post('/logout-all', async (request, reply) => {
+    const { refreshToken } = request.cookies;
+
+    if (!refreshToken) {
+      reply.clearCookie('refreshToken', {
+        path: '/auth',
+      });
+
+      return {
+        message: 'Logged out',
+      };
+    }
+
+    const payload = app.jwt.verify<JwtPayload>(refreshToken);
+
+    if (payload.type !== 'refresh' || !payload.jti) {
+      throw app.httpErrors.unauthorized('Invalid refresh token');
+    }
+
+    const sessionKey = `user:sessions:${payload.sub}`;
+
+    const sessionJtis = await redis.sMembers(sessionKey);
+
+    const refreshKeys = sessionJtis.map((jti) => `refresh:${jti}`);
+
+    if (refreshKeys.length > 0) {
+      await redis.del(refreshKeys);
+    }
+
+    await redis.del(sessionKey);
+
+    reply.clearCookie('refreshToken', {
+      path: '/auth',
+    });
+
+    return {
+      message: 'Logged out from all sessions',
     };
   });
 };

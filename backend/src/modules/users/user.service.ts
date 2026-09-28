@@ -1,3 +1,4 @@
+import redis from '../../lib/redis.js';
 import userRepository from './user.repository.js';
 
 const getUsers = async () => {
@@ -21,11 +22,23 @@ const createUser = async (
 };
 
 const getUserById = async (id: number) => {
+  const cacheKey = `cache:user:${id}`;
+
+  const cachedUser = await redis.get(cacheKey);
+
+  if (cachedUser) {
+    return JSON.parse(cachedUser);
+  }
+
   const user = await userRepository.findById(id);
 
   if (!user) {
     return null;
   }
+
+  await redis.set(cacheKey, JSON.stringify(user), {
+    EX: 60 * 5,
+  });
 
   return user;
 };
