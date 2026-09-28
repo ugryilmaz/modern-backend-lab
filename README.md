@@ -4,20 +4,29 @@ Modern backend ve full-stack geliştirme pratikleri için oluşturduğum kişise
 
 ## Kullanılan Teknolojiler
 
-- Node.js
-- TypeScript
-- Fastify
-- Drizzle ORM
-- PostgreSQL
-- Zod
-- React
-- Next.js
-- Docker
-- Redis
-- RabbitMQ
+Node.js
+TypeScript
+Fastify
+PostgreSQL
+Drizzle ORM
+Zod
+Argon2
+JWT
+Docker
 
 Mimari
 Modular Monolith
 Layered Architecture
 
-Proje ilerledikçe yeni mimari ve teknolojiler eklenecektir.
+Yapılanlar
+CRUD işlemleri
+Zod validation
+Global error handling
+PostgreSQL + Drizzle
+User authentication
+Password hashing
+JWT access token
+Refresh token
+HttpOnly cookie
+Protected routes
+RBAC (user / admin)
