@@ -6,6 +6,7 @@ export interface JwtPayload {
   sub: number;
   role: 'user' | 'admin';
   type: TokenType;
+  jti?: string;
 }
 
 declare module '@fastify/jwt' {

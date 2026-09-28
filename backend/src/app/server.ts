@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import app from './app.js';
+import { connectRedis } from '../lib/redis.js';
 
 const start = async () => {
+  await connectRedis();
   try {
     await app.listen({
       port: 3001,

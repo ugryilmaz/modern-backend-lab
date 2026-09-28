@@ -8,3 +8,9 @@ services:
       POSTGRES_DB: demo
     ports:
       - "5432:5432"
+
+  redis:
+    image: redis:8
+    container_name: demo-redis
+    ports:
+      - "6379:6379"
