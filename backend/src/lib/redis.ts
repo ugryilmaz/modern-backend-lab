@@ -1,7 +1,8 @@
 import { createClient } from 'redis';
+
 import { env } from '../config/env.js';
 
-const redis = createClient({
+export const redis = createClient({
   url: env.REDIS_URL,
 });
 
@@ -14,4 +15,26 @@ export const connectRedis = async () => {
     await redis.connect();
   }
 };
-export default redis;
+
+export const subscriber = redis.duplicate();
+
+subscriber.on('error', (error) => {
+  console.error('Redis Subscriber Error', error);
+});
+
+export const connectSubscriber = async () => {
+  if (!subscriber.isOpen) {
+    await subscriber.connect();
+  }
+};
+
+export const subscribeToChannel = async (
+  channel: string,
+  handler: (message: string) => void,
+) => {
+  await subscriber.subscribe(channel, handler);
+};
+
+export const publishMessage = async (channel: string, message: string) => {
+  await redis.publish(channel, message);
+};

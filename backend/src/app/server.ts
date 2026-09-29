@@ -1,9 +1,19 @@
 import 'dotenv/config';
 import app from './app.js';
-import { connectRedis } from '../lib/redis.js';
+import {
+  connectRedis,
+  connectSubscriber,
+  subscribeToChannel,
+} from '../lib/redis.js';
 
 const start = async () => {
   await connectRedis();
+  await connectSubscriber();
+  await subscribeToChannel('user.updated', (message) => {
+    const event = JSON.parse(message);
+
+    console.log('User updated event:', event);
+  });
   try {
     await app.listen({
       port: 3001,

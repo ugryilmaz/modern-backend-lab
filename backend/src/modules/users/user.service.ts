@@ -1,4 +1,5 @@
-import redis from '../../lib/redis.js';
+import { randomUUID } from 'node:crypto';
+import { publishMessage, redis } from '../../lib/redis.js';
 import userRepository from './user.repository.js';
 
 const getUsers = async () => {
@@ -56,6 +57,19 @@ const updateUser = async (
     return null;
   }
 
+  await redis.del(`cache:user:${id}`);
+
+  const event = {
+    eventId: randomUUID(),
+    type: 'user.updated',
+    occurredAt: new Date().toISOString(),
+    payload: {
+      userId: user.id,
+    },
+  };
+
+  await publishMessage('user.updated', JSON.stringify(event));
+
   return user;
 };
 
@@ -65,6 +79,8 @@ const deleteUser = async (id: number) => {
   if (!user) {
     return null;
   }
+
+  await redis.del(`cache:user:${id}`);
 
   return user;
 };

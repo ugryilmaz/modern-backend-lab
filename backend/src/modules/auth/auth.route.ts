@@ -3,7 +3,7 @@ import { loginSchema, registerSchema } from './auth.schema.js';
 import { login, register } from './auth.service.js';
 import type { JwtPayload } from './auth.types.js';
 import { randomUUID } from 'node:crypto';
-import redis from '../../lib/redis.js';
+import { redis } from '../../lib/redis.js';
 
 const authRoutes = async (app: FastifyInstance) => {
   app.post('/register', async (request, reply) => {
