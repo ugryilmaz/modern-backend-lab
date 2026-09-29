@@ -1,4 +1,5 @@
 import Fastify, { type FastifyError } from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import healthRoutes from './routes/health.routes.js';
 import userRoutes from '../modules/users/user.routes.js';
 import fastifySensible from '@fastify/sensible';
@@ -9,6 +10,11 @@ import fastifyCookie from '@fastify/cookie';
 
 const app = Fastify({
   logger: true,
+});
+
+await app.register(rateLimit, {
+  max: 100,
+  timeWindow: '1 minute',
 });
 
 app.register(fastifyCookie);

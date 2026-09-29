@@ -22,62 +22,73 @@ const authRoutes = async (app: FastifyInstance) => {
     return reply.status(201).send(user);
   });
 
-  app.post('/login', async (request, reply) => {
-    const result = loginSchema.safeParse(request.body);
+  app.post(
+    '/login',
+    {
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (request, reply) => {
+      const result = loginSchema.safeParse(request.body);
 
-    if (!result.success) {
-      return reply.status(400).send({
-        message: 'Validation error',
-        errors: result.error.issues,
-      });
-    }
+      if (!result.success) {
+        return reply.status(400).send({
+          message: 'Validation error',
+          errors: result.error.issues,
+        });
+      }
 
-    const { email, password } = result.data;
+      const { email, password } = result.data;
 
-    const user = await login(email, password);
+      const user = await login(email, password);
 
-    if (!user) {
-      throw app.httpErrors.unauthorized('Invalid email or password');
-    }
+      if (!user) {
+        throw app.httpErrors.unauthorized('Invalid email or password');
+      }
 
-    const refreshJti = randomUUID();
-    const accessToken = await reply.jwtSign({
-      sub: user.id,
-      role: user.role,
-      type: 'access',
-    });
-
-    const refreshToken = await reply.jwtSign(
-      {
+      const refreshJti = randomUUID();
+      const accessToken = await reply.jwtSign({
         sub: user.id,
         role: user.role,
-        type: 'refresh',
-        jti: refreshJti,
-      },
-      {
-        expiresIn: '7d',
-      },
-    );
+        type: 'access',
+      });
 
-    await redis.set(`refresh:${refreshJti}`, String(user.id), {
-      EX: 60 * 60 * 24 * 7,
-    });
+      const refreshToken = await reply.jwtSign(
+        {
+          sub: user.id,
+          role: user.role,
+          type: 'refresh',
+          jti: refreshJti,
+        },
+        {
+          expiresIn: '7d',
+        },
+      );
 
-    await redis.sAdd(`user:sessions:${user.id}`, refreshJti);
+      await redis.set(`refresh:${refreshJti}`, String(user.id), {
+        EX: 60 * 60 * 24 * 7,
+      });
 
-    reply.setCookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      path: '/auth',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+      await redis.sAdd(`user:sessions:${user.id}`, refreshJti);
 
-    return {
-      accessToken,
-      user,
-    };
-  });
+      reply.setCookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        path: '/auth',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return {
+        accessToken,
+        user,
+      };
+    },
+  );
 
   app.post('/refresh', async (request, reply) => {
     const { refreshToken } = request.cookies;
