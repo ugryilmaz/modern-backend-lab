@@ -7,6 +7,7 @@ import authRoutes from '../modules/auth/auth.route.js';
 import fastifyJwt from '@fastify/jwt';
 import { env } from '../config/env.js';
 import fastifyCookie from '@fastify/cookie';
+import { orderRoutes } from '../modules/orders/order.routes.js';
 
 const app = Fastify({
   logger: true,
@@ -27,6 +28,7 @@ app.register(fastifyJwt, {
 });
 
 app.register(healthRoutes);
+app.register(orderRoutes);
 app.register(userRoutes);
 app.register(authRoutes, { prefix: '/auth' });
 app.register(fastifySensible);

@@ -5,9 +5,18 @@ import {
   connectSubscriber,
   subscribeToChannel,
 } from '../lib/redis.js';
-import os from 'node:os';
+
+import {
+  connectRabbitMQ,
+  publishEvent,
+  consumeEvents,
+  setupRabbitMQ,
+} from '../lib/rabbitmq.js';
+import { handleOrderCreated } from '../modules/notifications/notification.service.js';
 
 const start = async () => {
+  await setupRabbitMQ();
+
   await connectRedis();
   await connectSubscriber();
   await subscribeToChannel('user.updated', (message) => {
@@ -15,12 +24,16 @@ const start = async () => {
 
     console.log('User updated event:', event);
   });
-  app.get('/instance', async () => {
+
+  /*app.get('/instance', async () => {
     return {
       instance: os.hostname(),
       message: 'Docker hot reload çalışıyor',
     };
-  });
+  });*/
+
+  await consumeEvents('notification.queue', handleOrderCreated);
+
   try {
     await app.listen({
       port: 3001,

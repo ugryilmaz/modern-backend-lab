@@ -38,3 +38,13 @@ export const subscribeToChannel = async (
 export const publishMessage = async (channel: string, message: string) => {
   await redis.publish(channel, message);
 };
+
+export const isEventProcessed = async (eventId: string) => {
+  const result = await redis.exists(`event:processed:${eventId}`);
+
+  return result === 1;
+};
+
+export const markEventAsProcessed = async (eventId: string) => {
+  await redis.set(`event:processed:${eventId}`, '1');
+};
