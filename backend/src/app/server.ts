@@ -6,12 +6,7 @@ import {
   subscribeToChannel,
 } from '../lib/redis.js';
 
-import { consumeEvents, setupRabbitMQ } from '../lib/rabbitmq.js';
-import { handleOrderCreated } from '../modules/notifications/notification.service.js';
-
 const start = async () => {
-  await setupRabbitMQ();
-
   await connectRedis();
   await connectSubscriber();
   await subscribeToChannel('user.updated', (message) => {
@@ -26,8 +21,6 @@ const start = async () => {
       message: 'Docker hot reload çalışıyor',
     };
   });*/
-
-  await consumeEvents('notification.queue', handleOrderCreated);
 
   try {
     await app.listen({
