@@ -5,6 +5,7 @@ import {
   connectSubscriber,
   subscribeToChannel,
 } from '../lib/redis.js';
+import os from 'node:os';
 
 const start = async () => {
   await connectRedis();
@@ -13,6 +14,12 @@ const start = async () => {
     const event = JSON.parse(message);
 
     console.log('User updated event:', event);
+  });
+  app.get('/instance', async () => {
+    return {
+      instance: os.hostname(),
+      message: 'Docker hot reload çalışıyor',
+    };
   });
   try {
     await app.listen({

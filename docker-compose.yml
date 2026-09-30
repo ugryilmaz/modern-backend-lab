@@ -2,15 +2,24 @@ services:
   postgres:
     image: postgres:18
     container_name: demo-postgres
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: demo
+
     ports:
       - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
 
   redis:
     image: redis:8
     container_name: demo-redis
+
     ports:
       - "6379:6379"
+
+volumes:
+  postgres_data:
