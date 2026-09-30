@@ -6,12 +6,7 @@ import {
   subscribeToChannel,
 } from '../lib/redis.js';
 
-import {
-  connectRabbitMQ,
-  publishEvent,
-  consumeEvents,
-  setupRabbitMQ,
-} from '../lib/rabbitmq.js';
+import { consumeEvents, setupRabbitMQ } from '../lib/rabbitmq.js';
 import { handleOrderCreated } from '../modules/notifications/notification.service.js';
 
 const start = async () => {

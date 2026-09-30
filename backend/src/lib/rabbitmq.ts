@@ -35,6 +35,19 @@ export const setupRabbitMQ = async () => {
     'order.created',
   );
 
+  await channel.assertQueue('notification.retry', {
+    durable: true,
+    arguments: {
+      'x-message-ttl': 5000,
+      'x-dead-letter-exchange': 'order.events',
+      'x-dead-letter-routing-key': 'order.created',
+    },
+  });
+
+  await channel.assertQueue('notification.dlq', {
+    durable: true,
+  });
+
   console.log('RabbitMQ exchange, queue and binding ready');
 };
 
@@ -66,11 +79,47 @@ export const consumeEvents = async <T>(
       return;
     }
 
-    const content = message.content.toString();
-    const event = JSON.parse(content);
+    try {
+      const content = message.content.toString();
+      const event = JSON.parse(content);
 
-    await handler(event);
+      await handler(event);
 
-    channel.ack(message);
+      channel.ack(message);
+    } catch (error) {
+      console.error('Message processing failed:', error);
+
+      const retryCount = Number(
+        message.properties.headers?.['x-retry-count'] ?? 0,
+      );
+
+      const maxRetries = 3;
+
+      if (retryCount >= maxRetries) {
+        channel.sendToQueue('notification.dlq', message.content, {
+          persistent: true,
+          headers: {
+            ...message.properties.headers,
+          },
+        });
+
+        channel.nack(message, false, false);
+
+        console.log('Message moved to DLQ');
+        return;
+      }
+
+      channel.sendToQueue('notification.retry', message.content, {
+        persistent: true,
+        headers: {
+          ...message.properties.headers,
+          'x-retry-count': retryCount + 1,
+        },
+      });
+
+      channel.nack(message, false, false);
+
+      console.log(`Message retry scheduled: ${retryCount + 1}`);
+    }
   });
 };
