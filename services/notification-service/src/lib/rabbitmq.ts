@@ -2,6 +2,10 @@ import amqp from 'amqplib';
 import { env } from '../config/env.js';
 import { randomUUID } from 'crypto';
 import type { EventEnvelope } from './events/event.type.js';
+import { saveInboxEvent } from '../modules/inbox/inbox.service.js';
+import { inbox } from '../db/schema.js';
+import { eq } from 'drizzle-orm';
+import db from '../db/client.js';
 
 let connection: amqp.ChannelModel | null = null;
 let channel: amqp.Channel | null = null;
@@ -35,7 +39,7 @@ export const setupRabbitMQ = async () => {
   return channel;
 };
 
-export const consumeEvent = async <T>(
+export const consumeEvents = async <T>(
   queue: string,
   handler: (event: T) => Promise<void>,
 ) => {
@@ -47,13 +51,33 @@ export const consumeEvent = async <T>(
     }
 
     try {
-      const content = message.content.toString();
-      const event = JSON.parse(content) as T;
+      const event = JSON.parse(message.content.toString()) as EventEnvelope<T>;
+
+      const inboxEvent = await saveInboxEvent(event);
+
+      if (!inboxEvent) {
+        throw new Error('Inbox event could not be saved');
+      }
+
+      if (inboxEvent.processedAt) {
+        console.log('Duplicate event ignored:', event.eventId);
+
+        channel.ack(message);
+        return;
+      }
 
       await handler(event);
+
+      await db
+        .update(inbox)
+        .set({
+          processedAt: new Date(),
+        })
+        .where(eq(inbox.id, inboxEvent.id));
+
       channel.ack(message);
     } catch (error) {
-      console.error('Error handling message:', error);
+      console.error('Message processing failed:', error);
     }
   });
 };

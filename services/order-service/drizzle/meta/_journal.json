@@ -8,6 +8,20 @@
       "when": 1790794782215,
       "tag": "0000_mighty_vapor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790842232871,
+      "tag": "0001_outgoing_mordo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790843512954,
+      "tag": "0002_simple_power_pack",
+      "breakpoints": true
     }
   ]
 }

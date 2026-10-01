@@ -1,25 +1,51 @@
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
-import { publishEvent } from '../../lib/rabbitmq.js';
+import { publishOutboxEvent } from '../../lib/rabbitmq.js';
 import db from '../../db/client.js';
-import { orders } from '../../db/schema.js';
+import { orders, outbox } from '../../db/schema.js';
 
 const orderRoutes = async (app: FastifyInstance) => {
   app.post('/orders', async () => {
-    const [order] = await db
-      .insert(orders)
-      .values({
-        id: randomUUID(),
-        userId: '67890',
-      })
-      .returning();
+    const eventId = randomUUID();
 
-    await publishEvent('order.created', {
-      orderId: order.id,
-      userId: order.userId,
+    const event = {
+      eventId,
+      type: 'order.created',
+      version: 1,
+      occurredAt: new Date().toISOString(),
+      source: 'order-service',
+      data: {
+        userId: '67890',
+      },
+    };
+
+    const result = await db.transaction(async (tx) => {
+      const [order] = await tx
+        .insert(orders)
+        .values({
+          userId: event.data.userId,
+        })
+        .returning();
+
+      const [outboxEvent] = await tx
+        .insert(outbox)
+        .values({
+          eventId,
+          eventType: event.type,
+          payload: {
+            ...event,
+            data: {
+              ...event.data,
+              orderId: order.id,
+            },
+          },
+        })
+        .returning();
+
+      return { order, outboxEvent };
     });
 
-    return order;
+    return result.order;
   });
 };
 

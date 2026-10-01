@@ -1,15 +1,13 @@
 import amqp from 'amqplib';
 import { env } from '../config/env.js';
-import { randomUUID } from 'crypto';
-import type { EventEnvelope } from './events/event.type.js';
 
 let connection: amqp.ChannelModel | null = null;
-let channel: amqp.Channel | null = null;
+let channel: amqp.ConfirmChannel | null = null;
 
-export const connectRabbitMQ = async (): Promise<amqp.Channel> => {
+export const connectRabbitMQ = async (): Promise<amqp.ConfirmChannel> => {
   if (!connection || !channel) {
     connection = await amqp.connect(env.RABBITMQ_URL);
-    channel = await connection.createChannel();
+    channel = await connection.createConfirmChannel();
 
     console.log('RabbitMQ connected');
   }
@@ -25,19 +23,15 @@ export const setupRabbitMQ = async () => {
   console.log('Order Service RabbitMQ exchange ready');
 };
 
-export const publishEvent = async <T>(type: string, data: T) => {
+export const publishOutboxEvent = async (
+  eventType: string,
+  payload: unknown,
+) => {
   const channel = await connectRabbitMQ();
 
-  const event: EventEnvelope<T> = {
-    eventId: randomUUID(),
-    type,
-    version: 1,
-    occurredAt: new Date().toISOString(),
-    source: 'order-service',
-    data,
-  };
+  const content = Buffer.from(JSON.stringify(payload));
 
-  const content = Buffer.from(JSON.stringify(event));
+  channel.publish('order.events', eventType, content, { persistent: true });
 
-  channel.publish('order.events', type, content);
+  await channel.waitForConfirms();
 };
