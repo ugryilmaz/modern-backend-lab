@@ -52,6 +52,20 @@ app.register(proxy, {
   },
 });
 
+app.register(proxy, {
+  upstream: 'http://localhost:3010',
+  prefix: '/profile',
+  rewritePrefix: '/profile',
+  preHandler: authenticate,
+  replyOptions: {
+    rewriteRequestHeaders: (request, headers) => ({
+      ...headers,
+      'x-user-id': String(request.user.sub),
+      'x-user-role': request.user.role,
+    }),
+  },
+});
+
 app.setErrorHandler((error: FastifyError, request, reply) => {
   app.log.error(error);
 

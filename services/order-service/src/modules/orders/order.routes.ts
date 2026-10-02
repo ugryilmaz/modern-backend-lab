@@ -1,10 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
-import { publishOutboxEvent } from '../../lib/rabbitmq.js';
 import db from '../../db/client.js';
 import { orders, outbox } from '../../db/schema.js';
+import orderService from './order.service.js';
 
 const orderRoutes = async (app: FastifyInstance) => {
+  app.get('/orders', async () => {
+    const result = await orderService.getOrders();
+    return result;
+  });
+
   app.post('/orders', async () => {
     const eventId = randomUUID();
 
