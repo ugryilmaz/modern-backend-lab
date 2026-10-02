@@ -1,11 +1,11 @@
 {
-  "id": "9ca805fe-a207-4a19-9c8f-a53de1aadde1",
+  "id": "3a6dd3f4-e7fe-4751-bb2b-5964040ff247",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.users": {
-      "name": "users",
+    "public.auth_users": {
+      "name": "auth_users",
       "schema": "",
       "columns": {
         "id": {
@@ -14,24 +14,11 @@
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "email": {
           "name": "email",
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
         },
         "password_hash": {
           "name": "password_hash",
@@ -46,14 +33,21 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'user'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "users_email_unique": {
-          "name": "users_email_unique",
+        "auth_users_email_unique": {
+          "name": "auth_users_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "email"

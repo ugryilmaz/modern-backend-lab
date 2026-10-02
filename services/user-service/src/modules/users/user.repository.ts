@@ -6,11 +6,8 @@ const findAll = async () => {
   return db.select().from(users);
 };
 
-const create = async (name: string, email: string, passwordHash: string) => {
-  const result = await db
-    .insert(users)
-    .values({ name, email, passwordHash })
-    .returning();
+const create = async (name: string, email: string) => {
+  const result = await db.insert(users).values({ name, email }).returning();
   return result[0];
 };
 
@@ -30,12 +27,12 @@ const update = async (id: number, data: { name?: string; email?: string }) => {
     .set(data)
     .where(eq(users.id, id))
     .returning();
+
   return result[0];
 };
 
 const remove = async (id: number) => {
   const result = await db.delete(users).where(eq(users.id, id)).returning();
-
   return result[0];
 };
 

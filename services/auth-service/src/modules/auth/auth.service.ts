@@ -1,13 +1,12 @@
-import userRepository from '../users/user.repository.js';
+import authRepository from './auth.repository.js';
 import { hashPassword, verifyPassword } from './password.js';
 
-const register = async (name: string, email: string, password: string) => {
+const register = async (email: string, password: string) => {
   const passwordHash = await hashPassword(password);
-  const user = await userRepository.create(name, email, passwordHash);
+  const user = await authRepository.create(email, passwordHash);
 
   const safeUser = {
     id: user.id,
-    name: user.name,
     email: user.email,
     role: user.role,
     createdAt: user.createdAt,
@@ -17,7 +16,7 @@ const register = async (name: string, email: string, password: string) => {
 };
 
 const login = async (email: string, password: string) => {
-  const user = await userRepository.findByEmail(email);
+  const user = await authRepository.findByEmail(email);
 
   if (!user) {
     return null;
@@ -31,7 +30,6 @@ const login = async (email: string, password: string) => {
 
   const safeUser = {
     id: user.id,
-    name: user.name,
     email: user.email,
     role: user.role,
     createdAt: user.createdAt,

@@ -1,49 +1,42 @@
-import type { FastifyInstance } from "fastify";
-import userService from "./user.service.js";
-import { updateUserSchema, userIdParamsSchema } from "./users.schema.js";
+import type { FastifyInstance } from 'fastify';
+import userService from './user.service.js';
+import { updateUserSchema, userIdParamsSchema } from './users.schema.js';
 
 const userRoutes = async (app: FastifyInstance) => {
-  app.get(
-    "/users",
+  app.get('/users', async () => {
+    return userService.getUsers();
+  });
 
-    async () => {
-      return userService.getUsers();
-    },
-  );
+  app.get('/users/:id', async (request, reply) => {
+    const result = userIdParamsSchema.safeParse(request.params);
 
-  app.get(
-    "/users/:id",
+    if (!result.success) {
+      return reply.status(400).send({
+        message: 'Validation error',
+        errors: result.error.issues,
+      });
+    }
 
-    async (request, reply) => {
-      const result = userIdParamsSchema.safeParse(request.params);
+    const user = await userService.getUserById(result.data.id);
 
-      if (!result.success) {
-        return reply.status(400).send({
-          message: "Validation error",
-          errors: result.error.issues,
-        });
-      }
+    if (!user) {
+      throw app.httpErrors.notFound('User not found');
+    }
 
-      const user = await userService.getUserById(result.data.id);
-      /*if (!user) {
-        throw app.httpErrors.notFound("User not found");
-      }*/
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-      };
-    },
-  );
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    };
+  });
 
-  app.patch("/users/:id", async (request, reply) => {
+  app.patch('/users/:id', async (request, reply) => {
     const paramsResult = userIdParamsSchema.safeParse(request.params);
 
     if (!paramsResult.success) {
       return reply.status(400).send({
-        message: "Validation error",
+        message: 'Validation error',
         errors: paramsResult.error.issues,
       });
     }
@@ -52,7 +45,7 @@ const userRoutes = async (app: FastifyInstance) => {
 
     if (!result.success) {
       return reply.status(400).send({
-        message: "Validation error",
+        message: 'Validation error',
         errors: result.error.issues,
       });
     }
@@ -62,35 +55,31 @@ const userRoutes = async (app: FastifyInstance) => {
       result.data,
     );
 
-    /*if (!user) {
-      throw app.httpErrors.notFound("User not found");
-    }*/
+    if (!user) {
+      throw app.httpErrors.notFound('User not found');
+    }
 
     return user;
   });
 
-  app.delete(
-    "/users/:id",
+  app.delete('/users/:id', async (request, reply) => {
+    const paramsResult = userIdParamsSchema.safeParse(request.params);
 
-    async (request, reply) => {
-      const paramsResult = userIdParamsSchema.safeParse(request.params);
+    if (!paramsResult.success) {
+      return reply.status(400).send({
+        message: 'Validation error',
+        errors: paramsResult.error.issues,
+      });
+    }
 
-      if (!paramsResult.success) {
-        return reply.status(400).send({
-          message: "Validation error",
-          errors: paramsResult.error.issues,
-        });
-      }
+    const user = await userService.deleteUser(paramsResult.data.id);
 
-      const user = await userService.deleteUser(paramsResult.data.id);
+    if (!user) {
+      throw app.httpErrors.notFound('User not found');
+    }
 
-      /*if (!user) {
-        throw app.httpErrors.notFound("User not found");
-      }*/
-
-      return reply.code(204).send();
-    },
-  );
+    return reply.code(204).send();
+  });
 };
 
 export default userRoutes;

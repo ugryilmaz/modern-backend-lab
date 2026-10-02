@@ -9,17 +9,12 @@ const getUsers = async () => {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role,
     createdAt: user.createdAt,
   }));
 };
 
-const createUser = async (
-  name: string,
-  email: string,
-  passwordHash: string,
-) => {
-  return userRepository.create(name, email, passwordHash);
+const createUser = async (name: string, email: string) => {
+  return userRepository.create(name, email);
 };
 
 const getUserById = async (id: number) => {
@@ -68,7 +63,7 @@ const updateUser = async (
     },
   };
 
-  /*await publishMessage('user.updated', JSON.stringify(event));*/
+  /* await publishMessage('user.updated', JSON.stringify(event)); */
 
   return user;
 };

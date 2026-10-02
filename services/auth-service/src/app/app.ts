@@ -1,7 +1,7 @@
 import Fastify, { type FastifyError } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import healthRoutes from './routes/health.routes.js';
-import userRoutes from '../modules/users/user.routes.js';
+
 import fastifySensible from '@fastify/sensible';
 import authRoutes from '../modules/auth/auth.route.js';
 import fastifyJwt from '@fastify/jwt';
@@ -28,7 +28,6 @@ app.register(fastifyJwt, {
 
 app.register(healthRoutes);
 
-app.register(userRoutes);
 app.register(authRoutes, { prefix: '/auth' });
 app.register(fastifySensible);
 

@@ -16,8 +16,8 @@ const authRoutes = async (app: FastifyInstance) => {
       });
     }
 
-    const { name, email, password } = result.data;
-    const user = await register(name, email, password);
+    const { email, password } = result.data;
+    const user = await register(email, password);
 
     return reply.status(201).send(user);
   });
