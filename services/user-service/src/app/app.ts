@@ -8,3 +8,11 @@ export const app = Fastify({
 
 app.register(userRoutes);
 app.register(sensible);
+app.addHook('onRequest', async (request) => {
+  request.log.info(
+    {
+      requestId: request.headers['x-request-id'],
+    },
+    'Request ID',
+  );
+});
