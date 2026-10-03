@@ -1,28 +1,10 @@
 # Modern Backend Lab
 
-## Genel Bakış
-
-Bu proje, modern backend uygulamalarını öğrenmek ve gerçekçi bir servis bazlı yapı kurmak amacıyla tasarlanmıştır. Proje, katmanlı mimari, güvenlik, veritabanı erişimi, async iletişim ve Docker tabanlı geliştirme ortamı gibi modern backend konularını bir arada ele alır.
-
-Projede hedeflenen alanlar:
-
-- API Gateway tasarımı
-- Servis bazlı / modüler backend yapısı
-- JWT tabanlı kimlik doğrulama
-- Role-Based Access Control (RBAC)
-- PostgreSQL + Drizzle ORM kullanımı
-- Zod ile request validation
-- Redis ve RabbitMQ entegrasyonu
-- Docker ile yerel geliştirme ortamı
-- Global error handling
-- Event-driven communication
-- Outbox / Inbox pattern uygulamaları
-
----
-
 ## Mimari Yapı
 
 Proje, merkezi bir gateway ve iş odaklı servislerden oluşan bir servis tabanlı mimari yaklaşımı sergiler. Tam bir mikroservis çözümü değil, öğrenme odaklı ve gerçekçi bir modern backend tasarımıdır.
+
+---
 
 ### Temel servisler
 
@@ -93,27 +75,3 @@ User service, sık erişilen veriler için Redis cache yapısını kullanır.
 - Redis
 - RabbitMQ
 - Docker / Docker Compose
-
-### Geliştirme Araçları
-
-- tsx
-- Drizzle Kit
-- Prettier
-
----
-
-## Özellikler
-
-- Kullanıcı kaydı ve giriş işlemleri
-- Şifre hashing (Argon2)
-- JWT access token üretimi
-- Refresh token desteği
-- HttpOnly cookie ile oturum yönetimi
-- Korunan route ve middleware kontrolü
-- Rol bazlı erişim kontrolü (`user`, `admin`)
-- Zod ile request validation
-- Global error handling
-- Veritabanı şema yönetimi (Drizzle)
-- Redis destekli cache ve state yönetimi
-- RabbitMQ ile async event flow
-- Docker ile yerel ortam kurulumu
