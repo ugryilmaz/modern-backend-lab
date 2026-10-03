@@ -1,0 +1,14 @@
+{
+  "name": "modern-backend-lab",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "api-gateway",
+    "backend-for-frontend",
+    "services/auth-service",
+    "services/user-service",
+    "services/order-service",
+    "services/notification-service",
+    "packages/shared"
+  ]
+}

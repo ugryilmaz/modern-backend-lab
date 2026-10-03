@@ -7,10 +7,13 @@ import authRoutes from '../modules/auth/auth.route.js';
 import fastifyJwt from '@fastify/jwt';
 import { env } from '../config/env.js';
 import fastifyCookie from '@fastify/cookie';
+import { helloWorld } from '@modern-backend-lab/shared';
 
 const app = Fastify({
   logger: true,
 });
+
+console.log(helloWorld());
 
 await app.register(rateLimit, {
   max: 100,
