@@ -14,7 +14,7 @@ export const app = Fastify({
 });
 
 app.register(rateLimit, {
-  max: 3,
+  max: 10,
   timeWindow: '1 minute',
 });
 

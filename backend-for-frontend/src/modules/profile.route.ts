@@ -1,28 +1,34 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type CircuitBreaker from 'opossum';
 
-export const profileRoutes = (app: FastifyInstance) => {
+interface ProfileRouteOptions {
+  orderCircuitBreaker: CircuitBreaker;
+}
+
+export const profileRoutes = (
+  app: FastifyInstance,
+  options: ProfileRouteOptions,
+) => {
   app.get('/profile', async (request) => {
     const userId = Number(request.headers['x-user-id']);
 
-    return {
+    /*return {
       userId,
-    };
+    };*/
 
-    const [usersResponse, ordersResponse] = await Promise.all([
+    const [usersResponse, orders] = await Promise.all([
       fetch('http://localhost:3004/users'),
-      fetch('http://localhost:3002/orders'),
+      options.orderCircuitBreaker.fire(),
     ]);
 
     console.log(usersResponse);
 
-    if (!usersResponse.ok || !ordersResponse.ok) {
+    if (!usersResponse.ok) {
       throw new Error('Backend service request failed');
     }
 
-    const [users, orders] = await Promise.all([
-      usersResponse.json(),
-      ordersResponse.json(),
-    ]);
+    const users = await usersResponse.json();
+
     return {
       users,
       orders,
