@@ -1,8 +1,22 @@
-import { pgTable, uuid, varchar, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  varchar,
+  timestamp,
+  jsonb,
+  pgEnum,
+} from 'drizzle-orm/pg-core';
+
+export const orderStatusEnum = pgEnum('order_status', [
+  'PENDING',
+  'CONFIRMED',
+  'CANCELLED',
+]);
 
 export const orders = pgTable('orders', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: varchar('user_id', { length: 255 }).notNull(),
+  status: orderStatusEnum('status').notNull().default('PENDING'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

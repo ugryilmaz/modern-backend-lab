@@ -29,6 +29,13 @@
       "when": 1791218312109,
       "tag": "0003_round_stepford_cuckoos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791297315247,
+      "tag": "0004_complete_magus",
+      "breakpoints": true
     }
   ]
 }

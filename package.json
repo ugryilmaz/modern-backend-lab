@@ -8,6 +8,7 @@
     "services/auth-service",
     "services/user-service",
     "services/order-service",
+    "services/payment-service",
     "services/notification-service",
     "packages/shared"
   ]
