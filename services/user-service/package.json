@@ -12,6 +12,8 @@
   "type": "module",
   "dependencies": {
     "@fastify/sensible": "^6.0.6",
+    "@grpc/grpc-js": "^1.14.5",
+    "@grpc/proto-loader": "^0.8.1",
     "@modern-backend-lab/shared": "^1.0.0",
     "amqplib": "^2.2.0",
     "dotenv": "^18.0.5",

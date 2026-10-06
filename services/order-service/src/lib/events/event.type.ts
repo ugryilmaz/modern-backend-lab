@@ -6,3 +6,8 @@ export type EventEnvelope<T> = {
   source: string;
   data: T;
 };
+
+export type OrderCreatedPayload = {
+  orderId: string;
+  userId: string;
+};

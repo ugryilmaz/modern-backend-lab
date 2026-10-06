@@ -1,8 +1,11 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type CircuitBreaker from 'opossum';
+import type { createOrderBulkhead } from '../bulkheads/order.bulkhead.js';
+import type { LimitFunction } from 'p-limit';
 
 interface ProfileRouteOptions {
   orderCircuitBreaker: CircuitBreaker;
+  orderBulkhead: LimitFunction;
 }
 
 export const profileRoutes = (
@@ -18,7 +21,7 @@ export const profileRoutes = (
 
     const [usersResponse, orders] = await Promise.all([
       fetch('http://localhost:3004/users'),
-      options.orderCircuitBreaker.fire(),
+      options.orderBulkhead(() => options.orderCircuitBreaker.fire()),
     ]);
 
     console.log(usersResponse);

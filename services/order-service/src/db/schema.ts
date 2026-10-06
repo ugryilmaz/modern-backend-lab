@@ -14,3 +14,8 @@ export const outbox = pgTable('outbox', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   publishedAt: timestamp('published_at'),
 });
+
+export const orderReadModel = pgTable('order_read_model', {
+  orderId: uuid('order_id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+});
