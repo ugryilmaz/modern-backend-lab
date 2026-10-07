@@ -1,11 +1,12 @@
 import amqp from 'amqplib';
 import { env } from '../config/env.js';
 import db from '../db/client.js';
-import { orderReadModel } from '../db/schema.js';
+
 import type {
   EventEnvelope,
   OrderCreatedPayload,
 } from './events/event.type.js';
+import { orderReadModel } from '../db/schema.js';
 
 let connection: amqp.ChannelModel | null = null;
 let channel: amqp.ConfirmChannel | null = null;

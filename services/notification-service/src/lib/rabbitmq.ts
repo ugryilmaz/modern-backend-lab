@@ -68,7 +68,7 @@ export const setupRabbitMQ = async () => {
 
 export const consumeEvents = async <T>(
   queue: string,
-  handler: (event: unknown) => Promise<void>,
+  handler: (event: EventEnvelope<T>) => Promise<void>,
 ) => {
   const channel = await connectRabbitMQ();
 

@@ -11,5 +11,8 @@
     "services/payment-service",
     "services/notification-service",
     "packages/shared"
-  ]
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present"
+  }
 }
