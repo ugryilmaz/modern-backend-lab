@@ -3,8 +3,15 @@ import userService from './user.service.js';
 import { updateUserSchema, userIdParamsSchema } from './users.schema.js';
 
 const userRoutes = async (app: FastifyInstance) => {
-  app.get('/users', async () => {
+  app.get('/v1/users', async () => {
     return userService.getUsers();
+  });
+
+  app.get('/v2/users', async () => {
+    return {
+      users: await userService.getUsers(),
+      message: 'This is version 2 of the users API',
+    };
   });
 
   app.get('/users/:id', async (request, reply) => {
