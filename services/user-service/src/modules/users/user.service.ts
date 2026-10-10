@@ -13,6 +13,36 @@ const getUsers = async () => {
   }));
 };
 
+const getUsersWithProducts = async () => {
+  return userRepository.findAllWithProducts();
+};
+
+const getUsersWithProductsBatch = async () => {
+  const users = await userRepository.findAll();
+
+  if (users.length === 0) {
+    return [];
+  }
+
+  const userIds = users.map((user) => user.id);
+
+  const products = await userRepository.findProductsByUserIds(userIds);
+
+  const productsByUserId = new Map<number, typeof products>();
+
+  for (const product of products) {
+    const userProducts = productsByUserId.get(product.userId) ?? [];
+
+    userProducts.push(product);
+    productsByUserId.set(product.userId, userProducts);
+  }
+
+  return users.map((user) => ({
+    ...user,
+    products: productsByUserId.get(user.id) ?? [],
+  }));
+};
+
 const createUser = async (name: string, email: string) => {
   return userRepository.create(name, email);
 };
@@ -86,4 +116,6 @@ export default {
   deleteUser,
   updateUser,
   createUser,
+  getUsersWithProducts,
+  getUsersWithProductsBatch,
 };

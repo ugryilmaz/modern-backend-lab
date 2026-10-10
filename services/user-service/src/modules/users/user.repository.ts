@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import db from '../../db/client.js';
-import { users } from '../../db/schema.js';
+import { products, users } from '../../db/schema.js';
 
 const findAll = async () => {
   return db.select().from(users);
@@ -36,6 +36,23 @@ const remove = async (id: number) => {
   return result[0];
 };
 
+//Eager loading of products for users
+const findAllWithProducts = async () => {
+  return db.query.users.findMany({
+    with: {
+      products: true,
+    },
+  });
+};
+
+const findProductsByUserIds = async (userIds: number[]) => {
+  if (userIds.length === 0) {
+    return [];
+  }
+
+  return db.select().from(products).where(inArray(products.userId, userIds));
+};
+
 export default {
   findAll,
   findById,
@@ -43,4 +60,6 @@ export default {
   remove,
   create,
   update,
+  findAllWithProducts,
+  findProductsByUserIds,
 };

@@ -9,7 +9,7 @@ const userRoutes = async (app: FastifyInstance) => {
 
   app.get('/v2/users', async () => {
     return {
-      users: await userService.getUsers(),
+      users: await userService.getUsersWithProductsBatch(),
       message: 'This is version 2 of the users API',
     };
   });
