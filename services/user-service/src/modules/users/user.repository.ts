@@ -36,7 +36,6 @@ const remove = async (id: number) => {
   return result[0];
 };
 
-//Eager loading of products for users
 const findAllWithProducts = async () => {
   return db.query.users.findMany({
     with: {

@@ -31,10 +31,13 @@ const getUsersWithProductsBatch = async () => {
   const productsByUserId = new Map<number, typeof products>();
 
   for (const product of products) {
-    const userProducts = productsByUserId.get(product.userId) ?? [];
+    const userProducts = productsByUserId.get(product.userId);
 
-    userProducts.push(product);
-    productsByUserId.set(product.userId, userProducts);
+    if (userProducts) {
+      userProducts.push(product);
+    } else {
+      productsByUserId.set(product.userId, [product]);
+    }
   }
 
   return users.map((user) => ({
