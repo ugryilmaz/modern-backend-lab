@@ -1,5 +1,45 @@
+import { app } from '../../app/app.js';
 import { chatResponseSchema, getOrderStatusSchema } from './ai.schema.js';
 import { aiTools, getOrderStatus } from './ai.tools.js';
+
+enum code {
+  TOOL_NOT_ALLOWED = 'TOOL_NOT_ALLOWED',
+  INVALID_ARGUMENTS = 'INVALID_ARGUMENTS',
+  TOOL_EXECUTION_FAILED = 'TOOL_EXECUTION_FAILED',
+}
+
+const executeAiTool = async (toolName: string, args: unknown) => {
+  switch (toolName) {
+    case 'get_order_status':
+      const parsedArgs = getOrderStatusSchema.safeParse(args);
+      if (!parsedArgs.success) {
+        return {
+          ok: false,
+          code: code.INVALID_ARGUMENTS,
+          message: 'Invalid arguments for get_order_status',
+        };
+      }
+
+      try {
+        const data = await getOrderStatus(parsedArgs.data.orderId);
+        return { ok: true, data };
+      } catch (error) {
+        app.log.error({ err: error, toolName }, 'AI tool execution failed');
+        return {
+          ok: false,
+          code: code.TOOL_EXECUTION_FAILED,
+          message: 'Failed to execute get_order_status',
+        };
+      }
+
+    default:
+      return {
+        ok: false,
+        code: code.TOOL_NOT_ALLOWED,
+        message: 'This tool is not allowed.',
+      };
+  }
+};
 
 const chatResponse = async (message: string) => {
   const messages: unknown[] = [
@@ -26,7 +66,11 @@ const chatResponse = async (message: string) => {
       messages,
       tools: aiTools,
       stream: false,
+      options: {
+        temperature: 0.2,
+      },
     }),
+
     signal: AbortSignal.timeout(30_000),
   });
 
@@ -43,13 +87,14 @@ const chatResponse = async (message: string) => {
     return result.message.content;
   }
 
-  if (toolCall.function.name !== 'get_order_status') {
-    throw new Error('Unsupported tool');
+  const toolResult = await executeAiTool(
+    toolCall.function.name,
+    toolCall.function.arguments,
+  );
+
+  if (!toolResult.ok && toolResult.code === code.TOOL_EXECUTION_FAILED) {
+    return 'Sipariş durumunu şu anda kontrol edemiyoruz. Lütfen daha sonra tekrar deneyin.';
   }
-
-  const args = getOrderStatusSchema.parse(toolCall.function.arguments);
-
-  const toolResult = await getOrderStatus(args.orderId);
 
   messages.push({
     role: 'assistant',
@@ -72,6 +117,9 @@ const chatResponse = async (message: string) => {
       model: 'gemma4:e2b',
       messages,
       stream: false,
+      options: {
+        temperature: 0.2,
+      },
     }),
     signal: AbortSignal.timeout(30_000),
   });
