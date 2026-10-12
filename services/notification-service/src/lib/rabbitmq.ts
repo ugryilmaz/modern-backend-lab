@@ -80,27 +80,41 @@ export const consumeEvents = async <T>(
     try {
       const event = JSON.parse(message.content.toString()) as EventEnvelope<T>;
 
-      const inboxEvent = await saveInboxEvent(event);
+      await db.transaction(async (tx) => {
+        await tx
+          .insert(inbox)
+          .values({
+            eventId: event.eventId,
+            eventType: event.type,
+            payload: event,
+          })
+          .onConflictDoNothing({
+            target: inbox.eventId,
+          });
 
-      if (!inboxEvent) {
-        throw new Error('Inbox event could not be saved');
-      }
+        const [inboxEvent] = await tx
+          .select()
+          .from(inbox)
+          .where(eq(inbox.eventId, event.eventId))
+          .limit(1)
+          .for('update');
 
-      if (inboxEvent.processedAt) {
-        console.log('Duplicate event ignored:', event.eventId);
+        if (!inboxEvent) {
+          throw new Error('Inbox event could not be found');
+        }
 
-        channel.ack(message);
-        return;
-      }
+        if (inboxEvent.processedAt) {
+          console.log('Duplicate event ignored:', event.eventId);
+          return;
+        }
 
-      await handler(event);
+        await handler(event);
 
-      await db
-        .update(inbox)
-        .set({
-          processedAt: new Date(),
-        })
-        .where(eq(inbox.id, inboxEvent.id));
+        await tx
+          .update(inbox)
+          .set({ processedAt: new Date() })
+          .where(eq(inbox.id, inboxEvent.id));
+      });
 
       channel.ack(message);
     } catch (error) {

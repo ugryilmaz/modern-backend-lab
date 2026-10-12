@@ -38,6 +38,8 @@ export const outbox = pgTable('outbox', {
   payload: jsonb('payload').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   publishedAt: timestamp('published_at'),
+  lockedAt: timestamp('locked_at'),
+  lockedBy: varchar('locked_by', { length: 255 }),
 });
 
 export const orderReadModel = pgTable('order_read_model', {
