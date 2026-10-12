@@ -6,9 +6,9 @@ const orders: Record<string, { status: string; carrier: string }> = {
 };
 
 export const getOrderStatus = async (orderId: string) => {
-  if (orderId === 'ORD-ERROR') {
+  /*if (orderId === 'ORD-ERROR') {
     throw new Error('Simulated order service failure');
-  }
+  }*/
   const order = orders[orderId];
   if (!order) {
     return {

@@ -24,3 +24,7 @@ export const chatResponseSchema = z.object({
 export const getOrderStatusSchema = z.object({
   orderId: z.string().trim().min(1),
 });
+
+export const intentRouteSchema = z.object({
+  intent: z.enum(['order_status', 'general_chat', 'clarification']),
+});

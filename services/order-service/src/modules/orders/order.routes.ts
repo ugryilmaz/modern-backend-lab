@@ -6,6 +6,13 @@ import { orders, outbox } from '../../db/schema.js';
 import { sql } from 'drizzle-orm';
 import { getOrders } from '../queries/order.query.js';
 import { createOrder } from '../commands/order.commands.js';
+import { z } from 'zod';
+
+const idempotencyKeySchema = z
+  .string()
+  .trim()
+  .min(1, 'Idempotency-Key cannot be empty')
+  .max(200, 'Idempotency-Key cannot exceed 200 characters');
 
 const orderRoutes = async (app: FastifyInstance) => {
   /*app.get('/deadlock-test', async () => {
@@ -57,9 +64,21 @@ const orderRoutes = async (app: FastifyInstance) => {
     return getOrders();
   });
 
-  app.post('/orders', async () => {
+  app.post('/orders', async (request, reply) => {
+    const result = idempotencyKeySchema.safeParse(
+      request.headers['idempotency-key'],
+    );
+
+    if (!result.success) {
+      return reply.code(400).send({
+        message: 'Invalid Idempotency-Key header.',
+        errors: result.error.issues,
+      });
+    }
+
     return createOrder({
       userId: '67890',
+      idempotencyKey: result.data,
     });
   });
 };
