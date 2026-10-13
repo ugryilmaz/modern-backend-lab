@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { chatRequestSchema } from './ai.schema.js';
 import aiService from './ai.service.js';
+import { randomUUID } from 'crypto';
 
 const aiRoutes = (app: FastifyInstance) => {
   app.post('/chat', async (request, reply) => {
@@ -13,9 +14,11 @@ const aiRoutes = (app: FastifyInstance) => {
       });
     }
 
+    const conversationId = input.data.conversationId ?? randomUUID();
+
     try {
       const response = await aiService.chatResponse(input.data.message);
-      return { response };
+      return { response, conversationId };
     } catch (error) {
       request.log.error({ err: error }, 'AI request failed');
 

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const chatRequestSchema = z.object({
   message: z.string().trim().min(1).max(4000),
+  conversationId: z.uuid().optional(),
 });
 
 const toolSchema = z.object({
@@ -25,6 +26,4 @@ export const getOrderStatusSchema = z.object({
   orderId: z.string().trim().min(1),
 });
 
-export const intentRouteSchema = z.object({
-  intent: z.enum(['order_status', 'general_chat', 'clarification']),
-});
+export const getEstimatedDeliverySchema = getOrderStatusSchema;

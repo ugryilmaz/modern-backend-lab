@@ -10,6 +10,7 @@
     "services/order-service",
     "services/payment-service",
     "services/notification-service",
+    "services/ai-service",
     "packages/shared"
   ],
   "scripts": {

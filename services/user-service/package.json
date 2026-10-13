@@ -14,6 +14,7 @@
   "dependencies": {
     "@fastify/etag": "^6.2.0",
     "@fastify/sensible": "^6.0.6",
+    "@fastify/type-provider-zod": "^1.0.1",
     "@grpc/grpc-js": "^1.14.5",
     "@grpc/proto-loader": "^0.8.1",
     "@modern-backend-lab/shared": "^1.0.0",

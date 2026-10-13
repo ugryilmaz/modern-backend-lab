@@ -1,8 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import userService from './user.service.js';
 import { updateUserSchema, userIdParamsSchema } from './users.schema.js';
+import type { FastifyPluginAsyncZod } from '@fastify/type-provider-zod';
 
-const userRoutes = async (app: FastifyInstance) => {
+const userRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get('/v1/users', async () => {
     return userService.getUsers();
   });
@@ -14,29 +15,30 @@ const userRoutes = async (app: FastifyInstance) => {
     };
   });
 
-  app.get('/users/:id', async (request, reply) => {
-    const result = userIdParamsSchema.safeParse(request.params);
+  app.get(
+    '/users/:id',
+    {
+      schema: {
+        params: userIdParamsSchema,
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params;
 
-    if (!result.success) {
-      return reply.status(400).send({
-        message: 'Validation error',
-        errors: result.error.issues,
-      });
-    }
+      const user = await userService.getUserById(id);
 
-    const user = await userService.getUserById(result.data.id);
+      if (!user) {
+        throw app.httpErrors.notFound('User not found');
+      }
 
-    if (!user) {
-      throw app.httpErrors.notFound('User not found');
-    }
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
-    };
-  });
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+      };
+    },
+  );
 
   app.patch('/users/:id', async (request, reply) => {
     const paramsResult = userIdParamsSchema.safeParse(request.params);

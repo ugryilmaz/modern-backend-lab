@@ -17,6 +17,8 @@
     "@grpc/grpc-js": "^1.14.5",
     "@grpc/proto-loader": "^0.8.1",
     "@modern-backend-lab/shared": "^1.0.0",
+    "ai": "^7.0.137",
+    "ai-sdk-ollama": "^4.4.0",
     "amqplib": "^2.2.0",
     "dotenv": "^18.0.5",
     "drizzle-orm": "^0.45.3",
