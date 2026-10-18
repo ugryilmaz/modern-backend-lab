@@ -14,4 +14,8 @@ const generateSdkReply = async (prompt: string): Promise<string> => {
   return text;
 };
 
-export default { generateSdkReply };
+export const summaryModel = ollama('gemma4:e2b', {
+  think: false,
+});
+
+export default { generateSdkReply, summaryModel };

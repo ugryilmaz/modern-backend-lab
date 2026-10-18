@@ -17,7 +17,10 @@ const aiRoutes = (app: FastifyInstance) => {
     const conversationId = input.data.conversationId ?? randomUUID();
 
     try {
-      const response = await aiService.chatResponse(input.data.message);
+      const response = await aiService.chatResponse(
+        input.data.message,
+        conversationId,
+      );
       return { response, conversationId };
     } catch (error) {
       request.log.error({ err: error }, 'AI request failed');
