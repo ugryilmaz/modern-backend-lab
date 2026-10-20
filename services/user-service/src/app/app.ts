@@ -13,6 +13,11 @@ app.setValidatorCompiler(validatorCompiler);
 await app.register(fastifyEtag);
 
 app.register(userRoutes);
+
+app.inject('/v1/users', (error, response) => {
+  console.log(response?.statusCode);
+});
+
 app.register(sensible);
 app.addHook('onRequest', async (request) => {
   request.log.info(

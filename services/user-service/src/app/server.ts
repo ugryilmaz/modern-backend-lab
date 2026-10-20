@@ -8,13 +8,13 @@ import {
 
 const start = async () => {
   try {
-    await connectRedis();
+    /*await connectRedis();
     await connectSubscriber();
     await subscribeToChannel('user.updated', (message) => {
       const event = JSON.parse(message);
 
       console.log('User updated event:', event);
-    });
+    });*/
     await app.listen({
       port: 3004,
       host: '0.0.0.0',

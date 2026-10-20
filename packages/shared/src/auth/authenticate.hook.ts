@@ -1,3 +1,5 @@
+import '@fastify/jwt';
+import '@fastify/sensible';
 import type { FastifyRequest } from 'fastify';
 
 const authenticate = async (request: FastifyRequest) => {

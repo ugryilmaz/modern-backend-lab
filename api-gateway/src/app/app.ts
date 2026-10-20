@@ -6,8 +6,8 @@ import healthRoutes from './routes/health.routes.js';
 import { env } from '../config/env.js';
 import fastifySensible from '@fastify/sensible';
 import rateLimit from '@fastify/rate-limit';
-import requireRole from '../hooks/require-role.hook.js';
-import authenticate from '../hooks/authenticate.hook.js';
+import { authenticate, requireRole } from '@modern-backend-lab/shared';
+
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { fastifyEtag } from '@fastify/etag';
@@ -106,6 +106,12 @@ app.register(proxy, {
       'x-request-id': request.id,
     }),
   },
+});
+
+app.register(proxy, {
+  upstream: 'http://localhost:3001',
+  prefix: '/auth',
+  rewritePrefix: '/auth',
 });
 
 app.register(proxy, {
