@@ -1,7 +1,7 @@
 import { generateText } from 'ai';
 import { ollama } from 'ai-sdk-ollama';
 
-export const model = ollama('gemma4:e2b');
+export const model = ollama('qwen3.5:4b');
 
 const generateSdkReply = async (prompt: string): Promise<string> => {
   const { text } = await generateText({

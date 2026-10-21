@@ -4,6 +4,7 @@ import fastifySensible from '@fastify/sensible';
 
 import { env } from '../config/env.js';
 import chatRoutes from '../modules/chat/chat.route.js';
+import mcpClient from '../modules/mcp/mcp.client.js';
 
 export const app = Fastify({
   logger: true,
@@ -16,3 +17,7 @@ app.register(fastifyJwt, {
 });
 
 app.register(chatRoutes);
+
+app.addHook('onClose', async () => {
+  await mcpClient.close();
+});

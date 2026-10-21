@@ -5,6 +5,14 @@ export const chatRequestSchema = z.object({
   conversationId: z.uuid().optional(),
 });
 
+export const mcpChatRequestSchema = z.object({
+  message: z.string().trim().min(1).max(4000),
+});
+
+export const chatAgentOutputSchema = z.object({
+  response: z.string().min(1).max(3000),
+});
+
 export const getOrderStatusSchema = z.object({
   orderId: z.string().trim().min(1),
 });
