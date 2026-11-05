@@ -14,6 +14,7 @@ import { fastifyEtag } from '@fastify/etag';
 
 export const app = Fastify({
   logger: true,
+  trustProxy: true,
 });
 
 app.register(rateLimit, {
@@ -21,7 +22,7 @@ app.register(rateLimit, {
   timeWindow: '1 minute',
 });
 
-/*await app.register(fastifySwagger, {
+await app.register(fastifySwagger, {
   openapi: {
     openapi: '3.1.0',
     info: {
@@ -29,35 +30,12 @@ app.register(rateLimit, {
       description: 'Production-Oriented Node.js Backend Architecture Lab',
       version: '1.0.0',
     },
-    paths: {
-      '/users': {
-        get: {
-          tags: ['Users'],
-          summary: 'Get users',
-          responses: {
-            200: {
-              description: 'Users returned successfully',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'array',
-                    items: {
-                      $ref: '#/components/schemas/User',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
   },
 });
 
 await app.register(fastifySwaggerUi, {
   routePrefix: '/documentation',
-});*/
+});
 
 await app.register(fastifyEtag);
 

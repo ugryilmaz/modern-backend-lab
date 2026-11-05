@@ -111,8 +111,6 @@ const chatRoutes = (app: FastifyInstance) => {
 
         request.log.error({ err: error }, 'MCP chat request failed');
 
-        await mcpClient.close();
-
         return reply.code(502).send({
           message: 'MCP üzerinden yanıt alınamadı.',
         });

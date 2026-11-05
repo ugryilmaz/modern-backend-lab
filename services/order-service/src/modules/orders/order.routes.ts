@@ -1,12 +1,9 @@
-import type { FastifyInstance } from 'fastify';
-import { randomUUID } from 'node:crypto';
-import db from '../../db/client.js';
-import { orders, outbox } from '../../db/schema.js';
-
-import { sql } from 'drizzle-orm';
-import { getOrders } from '../queries/order.query.js';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { getOrderById, getOrders } from '../queries/order.query.js';
 import { createOrder } from '../commands/order.commands.js';
 import { z } from 'zod';
+import { orderIdParamsSchema } from './order.schema.js';
+import type { FastifyPluginAsyncZod } from '@fastify/type-provider-zod';
 
 const idempotencyKeySchema = z
   .string()
@@ -14,7 +11,7 @@ const idempotencyKeySchema = z
   .min(1, 'Idempotency-Key cannot be empty')
   .max(200, 'Idempotency-Key cannot exceed 200 characters');
 
-const orderRoutes = async (app: FastifyInstance) => {
+const orderRoutes: FastifyPluginAsyncZod = async (app) => {
   /*app.get('/deadlock-test', async () => {
     const rows = await db
       .select({
@@ -63,6 +60,28 @@ const orderRoutes = async (app: FastifyInstance) => {
   app.get('/orders', async () => {
     return getOrders();
   });
+
+  app.get(
+    '/orders/:orderId',
+    {
+      schema: {
+        params: orderIdParamsSchema,
+      },
+    },
+    async (request, reply) => {
+      const { orderId } = request.params;
+
+      const orderDetail = await getOrderById(orderId);
+
+      if (!orderDetail) {
+        return reply.code(404).send({
+          message: 'Order not found',
+        });
+      }
+
+      return reply.code(200).send(orderDetail);
+    },
+  );
 
   app.post('/orders', async (request, reply) => {
     const result = idempotencyKeySchema.safeParse(

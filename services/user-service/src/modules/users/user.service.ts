@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { redis } from '../../lib/redis.js';
 import userRepository from './user.repository.js';
+import pRetry from 'p-retry';
 
 const getUsers = async () => {
   const users = await userRepository.findAll();
@@ -50,26 +51,72 @@ const createUser = async (name: string, email: string) => {
   return userRepository.create(name, email);
 };
 
+const lockScript = `
+  if redis.call('GET', KEYS[1]) == ARGV[1] then
+    return redis.call('DEL', KEYS[1])
+  end
+
+  return 0
+`;
+
 const getUserById = async (id: number) => {
   const cacheKey = `cache:user:${id}`;
+  const lockKey = `lock:user:${id}`;
 
-  const cachedUser = await redis.get(cacheKey);
+  return pRetry(
+    async () => {
+      const cachedUser = await redis.get(cacheKey);
 
-  if (cachedUser) {
-    return JSON.parse(cachedUser);
-  }
+      if (cachedUser) {
+        return JSON.parse(cachedUser);
+      }
 
-  const user = await userRepository.findById(id);
+      const token = randomUUID();
 
-  if (!user) {
-    return null;
-  }
+      const lockAcquired = await redis.set(lockKey, token, {
+        NX: true,
+        PX: 10_000,
+      });
 
-  await redis.set(cacheKey, JSON.stringify(user), {
-    EX: 60 * 5,
-  });
+      if (lockAcquired !== 'OK') {
+        throw new Error('Lock not acquired');
+      }
 
-  return user;
+      try {
+        const cachedUserAfterLock = await redis.get(cacheKey);
+
+        if (cachedUserAfterLock) {
+          return JSON.parse(cachedUserAfterLock);
+        }
+
+        const user = await userRepository.findById(id);
+
+        if (!user) {
+          return null;
+        }
+
+        await redis.set(cacheKey, JSON.stringify(user), {
+          EX: 60 * 5,
+        });
+
+        return user;
+      } finally {
+        await redis.eval(lockScript, {
+          keys: [lockKey],
+          arguments: [token],
+        });
+      }
+    },
+    {
+      retries: 5,
+      minTimeout: 20,
+      maxTimeout: 100,
+      factor: 2,
+      randomize: true,
+      maxRetryTime: 5_000,
+      shouldRetry: ({ error }) => error.message === 'Lock not acquired',
+    },
+  );
 };
 
 const updateUser = async (
