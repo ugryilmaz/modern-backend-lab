@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { redis } from '../src/lib/redis.js';
-import userRepository from '../src/modules/users/user.repository.js';
-import userService from '../src/modules/users/user.service.js';
+import { redis } from '../lib/redis.js';
+import userRepository from '../modules/users/user.repository.js';
+import userService from '../modules/users/user.service.js';
 
 const userId = 987654321;
 
@@ -25,7 +25,7 @@ after(async () => {
   }
 });
 
-test('100 concurrent requests should execute only one DB query', async () => {
+test('100 eşzamanlı kullanıcı isteği geldiğinde yalnızca bir DB sorgusu çalışmalı', async () => {
   let dbQueryCount = 0;
 
   const originalFindById = userRepository.findById;

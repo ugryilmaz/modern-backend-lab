@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/app/server.ts",
     "build": "tsc",
-    "test": "node --import tsx --test test/user.service.test.ts"
+    "test": "node --import tsx --test"
   },
   "keywords": [],
   "author": "",

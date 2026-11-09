@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { getEstimatedDelivery, getOrderStatus } from '../chat.tools.js';
+import { test } from 'node:test';
+import {
+  getEstimatedDelivery,
+  getOrderStatus,
+} from '../modules/chat/chat.tools.js';
 
 test('sipariş sahibi sipariş durumunu görebilir', async () => {
   const result = await getOrderStatus('ORD-1001', 1);
