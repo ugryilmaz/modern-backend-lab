@@ -119,6 +119,23 @@ const getUserById = async (id: number) => {
   );
 };
 
+const fencingLockScript = `
+  local lockAcquired = redis.call(
+    'SET',
+    KEYS[1],
+    ARGV[1],
+    'NX',
+    'PX',
+    ARGV[2]
+  )
+
+  if not lockAcquired then
+    return 0
+  end
+
+  return redis.call('INCR', KEYS[2])
+`;
+
 const updateUser = async (
   id: number,
   data: {
@@ -126,14 +143,11 @@ const updateUser = async (
     email?: string;
   },
 ) => {
-  const user = await userRepository.update(id, data);
+  const cacheKey = `cache:user:${id}`;
+  const lockKey = `lock:user:update:${id}`;
+  const fencingKey = `fencing:user:update:${id}`;
 
-  if (!user) {
-    return null;
-  }
-
-  await redis.del(`cache:user:${id}`);
-
+  /*
   const event = {
     eventId: randomUUID(),
     type: 'user.updated',
@@ -143,9 +157,54 @@ const updateUser = async (
     },
   };
 
-  /* await publishMessage('user.updated', JSON.stringify(event)); */
+  await publishMessage('user.updated', JSON.stringify(event)); */
 
-  return user;
+  return pRetry(
+    async () => {
+      const uuid = randomUUID();
+
+      const tokenResult = await redis.eval(fencingLockScript, {
+        keys: [lockKey, fencingKey],
+        arguments: [uuid, '10000'],
+      });
+
+      if (tokenResult === 0) {
+        throw new Error('Update lock not acquired');
+      }
+
+      const fencingToken = Number(tokenResult);
+
+      if (!Number.isSafeInteger(fencingToken) || fencingToken <= 0) {
+        throw new Error('Invalid fencing token');
+      }
+
+      try {
+        const user = await userRepository.update(id, data, fencingToken);
+
+        if (!user) {
+          return null;
+        }
+
+        await redis.del(cacheKey);
+
+        return user;
+      } finally {
+        await redis.eval(lockScript, {
+          keys: [lockKey],
+          arguments: [uuid],
+        });
+      }
+    },
+    {
+      retries: 5,
+      minTimeout: 20,
+      maxTimeout: 100,
+      factor: 2,
+      randomize: true,
+      maxRetryTime: 5_000,
+      shouldRetry: ({ error }) => error.message === 'Günceleme yapılamadı.',
+    },
+  );
 };
 
 const deleteUser = async (id: number) => {

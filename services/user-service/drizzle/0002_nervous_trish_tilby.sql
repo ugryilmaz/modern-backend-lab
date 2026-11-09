@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "last_fencing_token" bigint DEFAULT 0 NOT NULL;

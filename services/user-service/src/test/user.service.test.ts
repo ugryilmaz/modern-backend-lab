@@ -1,66 +1,111 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { after, before, test } from 'node:test';
+
 import { redis } from '../lib/redis.js';
+import { client, dbQueryCounter } from '../db/client.js';
 import userRepository from '../modules/users/user.repository.js';
 import userService from '../modules/users/user.service.js';
-
-const userId = 987654321;
-
-const cacheKey = `cache:user:${userId}`;
-const lockKey = `lock:user:${userId}`;
 
 before(async () => {
   if (!redis.isOpen) {
     await redis.connect();
   }
-
-  await redis.del([cacheKey, lockKey]);
 });
 
 after(async () => {
-  await redis.del([cacheKey, lockKey]);
-
   if (redis.isOpen) {
     await redis.quit();
   }
+
+  await client.end();
 });
 
 test('100 eşzamanlı kullanıcı isteği geldiğinde yalnızca bir DB sorgusu çalışmalı', async () => {
-  let dbQueryCount = 0;
+  const createdUser = await userRepository.create(
+    'Query Count Test User',
+    `query-count-${randomUUID()}@example.com`,
+  );
 
-  const originalFindById = userRepository.findById;
+  if (!createdUser) {
+    throw new Error('Test kullanıcısı oluşturulamadı');
+  }
 
-  userRepository.findById = async (id) => {
-    dbQueryCount++;
-
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    return {
-      id,
-      name: 'Test User',
-      email: 'test@example.com',
-      createdAt: new Date(),
-    };
-  };
+  const cacheKey = `cache:user:${createdUser.id}`;
+  const lockKey = `lock:user:${createdUser.id}`;
 
   try {
+    await redis.del([cacheKey, lockKey]);
+
+    dbQueryCounter.count = 0;
+
     const results = await Promise.all(
-      Array.from({ length: 100 }, () => userService.getUserById(userId)),
+      Array.from({ length: 100 }, () =>
+        userService.getUserById(createdUser.id),
+      ),
     );
 
-    assert.equal(dbQueryCount, 1);
+    const actualSqlQueryCount = dbQueryCounter.count;
+
+    assert.equal(actualSqlQueryCount, 1);
 
     assert.equal(results.length, 100);
 
-    assert.ok(results.every((user) => user?.id === userId));
+    assert.ok(results.every((user) => user?.id === createdUser.id));
 
     assert.equal(await redis.exists(lockKey), 0);
-
-    console.log('DB query count:', dbQueryCount);
-    console.log('Successful responses:', results.length);
   } finally {
-    userRepository.findById = originalFindById;
-
     await redis.del([cacheKey, lockKey]);
+    await userRepository.remove(createdUser.id);
+  }
+});
+
+test('eski fencing token ile gelen update reddedilmeli', async () => {
+  const createdUser = await userRepository.create(
+    'Fencing Test User',
+    `fencing-${randomUUID()}@example.com`,
+  );
+
+  if (!createdUser) {
+    throw new Error('Test kullanıcısı oluşturulamadı');
+  }
+
+  const fencingKey = `fencing:user:update:${createdUser.id}`;
+  const lockKey = `lock:user:update:${createdUser.id}`;
+  const cacheKey = `cache:user:${createdUser.id}`;
+
+  try {
+    const firstUpdate = await userService.updateUser(createdUser.id, {
+      name: 'Instance A',
+    });
+
+    assert.ok(firstUpdate);
+
+    const secondUpdate = await userService.updateUser(createdUser.id, {
+      name: 'Instance B',
+    });
+
+    assert.ok(secondUpdate);
+
+    assert.ok(secondUpdate.lastFencingToken > firstUpdate.lastFencingToken);
+
+    const staleUpdate = await userRepository.update(
+      createdUser.id,
+      { name: 'Stale Instance A' },
+      firstUpdate.lastFencingToken,
+    );
+
+    assert.equal(staleUpdate, undefined);
+
+    const currentUser = await userRepository.findById(createdUser.id);
+
+    assert.equal(currentUser?.name, 'Instance B');
+
+    assert.equal(currentUser?.lastFencingToken, secondUpdate.lastFencingToken);
+  } finally {
+    await redis.del([cacheKey, lockKey]);
+    await userRepository.remove(createdUser.id);
+
+    await redis.del(fencingKey);
   }
 });

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runOrderWorkflow } from '../chat.workflow.js';
+import { runOrderWorkflow } from '../modules/chat/chat.workflow.js';
 
 test('sipariş durumu workflow sonucu doğru biçimlendirir', async () => {
   const result = await runOrderWorkflow({

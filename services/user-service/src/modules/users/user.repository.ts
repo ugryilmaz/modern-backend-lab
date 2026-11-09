@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, lt } from 'drizzle-orm';
 import db from '../../db/client.js';
 import { products, users } from '../../db/schema.js';
 
@@ -21,11 +21,18 @@ const findByEmail = async (email: string) => {
   return result[0];
 };
 
-const update = async (id: number, data: { name?: string; email?: string }) => {
+const update = async (
+  id: number,
+  data: { name?: string; email?: string },
+  fencingToken: number,
+) => {
   const result = await db
     .update(users)
-    .set(data)
-    .where(eq(users.id, id))
+    .set({
+      ...data,
+      lastFencingToken: fencingToken,
+    })
+    .where(and(eq(users.id, id), lt(users.lastFencingToken, fencingToken)))
     .returning();
 
   return result[0];
