@@ -1,7 +1,7 @@
-import { generateText, Output, stepCountIs, tool, type ModelMessage } from 'ai';
+import { generateText, stepCountIs, tool, type ModelMessage } from 'ai';
 import { runOrderWorkflow } from './chat.workflow.js';
 import { chatInstructions } from './chat.instructions.js';
-import { chatAgentOutputSchema, orderWorkflowSchema } from './chat.schema.js';
+import { orderWorkflowSchema } from './chat.schema.js';
 import { model } from './chat-sdk.services.js';
 import { containsInstructionLeak } from './chat.guardrails.js';
 

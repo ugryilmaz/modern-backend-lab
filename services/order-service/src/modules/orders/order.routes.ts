@@ -1,4 +1,3 @@
-import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { getOrderById, getOrders } from '../queries/order.query.js';
 import { createOrder } from '../commands/order.commands.js';
 import { z } from 'zod';

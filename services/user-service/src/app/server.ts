@@ -1,10 +1,5 @@
 import 'dotenv/config';
 import { app } from './app.js';
-import {
-  connectRedis,
-  connectSubscriber,
-  subscribeToChannel,
-} from '../lib/redis.js';
 
 const start = async () => {
   try {

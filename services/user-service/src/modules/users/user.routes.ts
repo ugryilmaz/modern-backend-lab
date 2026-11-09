@@ -1,4 +1,3 @@
-import type { FastifyInstance } from 'fastify';
 import userService from './user.service.js';
 import { updateUserSchema, userIdParamsSchema } from './users.schema.js';
 import type { FastifyPluginAsyncZod } from '@fastify/type-provider-zod';
@@ -22,7 +21,7 @@ const userRoutes: FastifyPluginAsyncZod = async (app) => {
         params: userIdParamsSchema,
       },
     },
-    async (request, reply) => {
+    async (request) => {
       const { id } = request.params;
 
       const user = await userService.getUserById(id);

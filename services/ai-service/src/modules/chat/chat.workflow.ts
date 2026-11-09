@@ -67,7 +67,7 @@ export const runOrderWorkflow = async ({
       abortSignal?.throwIfAborted();
 
       return formatDeliveryResponse(delivery);
-    } catch (error) {
+    } catch {
       if (abortSignal?.aborted) {
         throw abortSignal.reason;
       }
@@ -82,7 +82,7 @@ export const runOrderWorkflow = async ({
     order = await getOrderStatus(orderId, userId);
 
     abortSignal?.throwIfAborted();
-  } catch (error) {
+  } catch {
     if (abortSignal?.aborted) {
       throw abortSignal.reason;
     }
@@ -102,7 +102,7 @@ export const runOrderWorkflow = async ({
     delivery = await getEstimatedDelivery(orderId, userId);
 
     abortSignal?.throwIfAborted();
-  } catch (error) {
+  } catch {
     if (abortSignal?.aborted) {
       throw abortSignal.reason;
     }

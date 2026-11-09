@@ -4,7 +4,7 @@ import type { ModelMessage } from 'ai';
 import {
   selectSlidingWindow,
   splitMessagesForSummary,
-} from '../chat.context.js';
+} from '../modules/chat/chat.context.js';
 
 const messages: ModelMessage[] = [
   { role: 'user', content: 'Mesaj 1' },

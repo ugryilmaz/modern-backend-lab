@@ -1,8 +1,6 @@
 import amqp from 'amqplib';
 import { env } from '../config/env.js';
-import { randomUUID } from 'crypto';
 import type { EventEnvelope } from './events/event.type.js';
-import { saveInboxEvent } from '../modules/inbox/inbox.service.js';
 import { inbox } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import db from '../db/client.js';

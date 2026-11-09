@@ -8,7 +8,7 @@ test('register ve login akışı Gateway üzerinden tamamlanmalı', async (t) =>
   const email = `e2e-${randomUUID()}@example.com`;
   const password = 'E2E-test-password-2026';
 
-  let refreshCookie: string | undefined;
+  let refreshCookie: string | undefined = undefined;
 
   t.after(async () => {
     if (!refreshCookie) {

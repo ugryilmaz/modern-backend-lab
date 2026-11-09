@@ -1,6 +1,5 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import type CircuitBreaker from 'opossum';
-import type { createOrderBulkhead } from '../bulkheads/order.bulkhead.js';
 import type { LimitFunction } from 'p-limit';
 
 interface ProfileRouteOptions {
@@ -12,10 +11,10 @@ export const profileRoutes = (
   app: FastifyInstance,
   options: ProfileRouteOptions,
 ) => {
-  app.get('/profile', async (request) => {
-    const userId = Number(request.headers['x-user-id']);
+  app.get('/profile', async () => {
+    /*const userId = Number(request.headers['x-user-id']);
 
-    /*return {
+    return {
       userId,
     };*/
 
